@@ -1,0 +1,44 @@
+name: Test
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                rust: [stable]
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ runner.os }}-rust-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+
+            - name: Install Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: ${{ matrix.rust }}
+                  override: true
+
+            - name: Build (debug)
+              run: cargo build --verbose
+
+            - name: Run tests
+              run: cargo test --verbose
+
+            - name: Build release (optional, checks release build)
+              run: cargo build --release --verbose

@@ -1,0 +1,13 @@
+[package]
+name = "handler"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+base64 = "0.22"
+chrono = "0.4"
+flate2 = "1"
+num-bigint = { version = "0.4", features = ["rand"] }
+rand = "0.8"
+sha1 = "0.10"

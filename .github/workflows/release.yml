@@ -1,0 +1,39 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Version number (e.g., 1.2.3)"
+                required: true
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set version and create tag (manual only)
+              if: github.event_name == 'workflow_dispatch'
+              run: |
+                  cargo install cargo-edit
+                  cargo set-version ${{ github.event.inputs.version }}
+                  git config user.name "github-actions"
+                  git config user.email "actions@github.com"
+                  git add Cargo.toml Cargo.lock
+                  git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+                  git tag v${{ github.event.inputs.version }}
+                  git push origin HEAD --tags
+
+            - name: Build release binary
+              run: cargo build --release --verbose
+
+            - name: Create Release and Upload Asset
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: target/release/handler*
+                  generate_release_notes: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
